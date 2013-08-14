@@ -1,4 +1,4 @@
-% Author: Omoju Thomas
+% Author: Omoju Miller
 % Date: 2/23/2004
 % Common Modules
 
