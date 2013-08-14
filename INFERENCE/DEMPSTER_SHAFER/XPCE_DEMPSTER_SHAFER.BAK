@@ -1,0 +1,776 @@
+% Author: Omoju Thomas
+% Date: 5/10/2004
+
+:- use_module(library('plot/plotter')).
+:- use_module(library('plot/barchart')).
+:- use_module(library(autowin)).
+:- use_module(library(autowin)).
+:- use_module(library(rdf)).
+:- use_module('../../shared_modules/rdf_db.pl').
+
+:- consult('../../shared_modules/inference_utilities.pl').
+:- consult('belief.pl').
+
+:- pce_autoload(finder, library(find_file)).
+:- pce_global(@finder, new(finder)).
+
+:-dynamic states/1, bpa0/3, evd/3, scenario/2, evd_source/2, hyp/2.
+:-dynamic get_table/1, get_hyp_view/1 ,get_data_view/1 ,get_chart/1.
+:-dynamic scenario/2, holder/1.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+%                          TOP  FRAME                                          %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+emptybin:-
+        retractall(bpa0(_,_,_)),
+        retractall(evd(_, _)),
+        retractall(bpa0(result ,_,_)),
+        retractall(evd(result, _)),
+        retractall(lastindex(_)),
+        retractall(com(_,_,_)).
+ds:-
+        emptybin,
+        assert(lastindex(0)),
+        free(F),
+        new(F, frame('SWEXSYS DEMPSTER-SHAFER MODULE')),
+        send(F, append, new(D, dialog)),
+        send(F, append, new(@table, picture)),
+        send(F, append, new(@hyp_view, browser)),
+        send(F, append, new(@data_view, browser)),
+        send(F, append, new(@chart, picture)),
+        send(@chart, below, @hyp_view),
+        send(@hyp_view, right, @table),
+        send(@data_view, right, @hyp_view),
+        send(@table, below, D),
+        
+        assert(get_table(@table)),
+        assert(get_hyp_view(@hyp_view)),
+        assert(get_data_view(@data_view)),
+        assert(get_chart(@chart)),
+
+        send(@hyp_view?list_browser, label, 'Hypothesis'),
+        send(@data_view?list_browser, label, 'Data Source'),
+        send(D,  append, new(MB, menu_bar)),
+        % attach pull down menus to above menu bar
+        send(MB, append, new(File, popup('File'))),
+        send(MB, append, new(Hypothesis, popup('Hypothesis'))),
+        send(MB, append, new(Evidence, popup('Evidence'))),
+        send(MB, append, new(DS, popup('Dempster Shafer'))),
+        send(MB, append, new(Help, popup('Help'))),
+
+        % attach sub menu items to pull down menus
+        send_list(File, append,
+            [
+              menu_item('New Scenario', message(@prolog, new_scenario)),
+              menu_item('Edit Scenario', message(@prolog, edit_scenario)),
+              menu_item('Load Scenario', message(@prolog, load_scenario, F),end_group := @on),
+              
+              menu_item('Save', message(@prolog, save_scenario)),
+              menu_item('Save As', message(@prolog, saveAs_scenario),end_group := @on),
+              
+              menu_item('Load RDF', message(@prolog, load_file)),
+              menu_item('Register Namespace', message(@prolog, reg_ns)),
+              menu_item('Import Data', message(@prolog, import_data),end_group := @on),
+              
+              menu_item('Quit', message(F, destroy))
+            ]),
+
+        send_list(Hypothesis, append,
+             [
+               menu_item('New Hypothesis', message(@prolog, enter_hyp))
+             ]),
+         send_list(Evidence, append,
+             [
+               menu_item('Enter Basic Probability', message(@prolog, enter_evidence)),
+               menu_item('View Evidence', message(@prolog, view_evidence), end_group := @on)
+             ]),
+             
+         send_list(DS, append,
+            [
+               menu_item('Combine Evidence', message(@prolog,combine_evidence)),
+               menu_item('Evidence Bar Chart', message(@prolog,barchart, result)),
+               menu_item('Evidence Table', message(@prolog,show, result))
+
+             ]),
+
+        send_list(Help, append,
+            [
+              menu_item('File -> New scenario', message(@prolog, helpFileNewScenario)),
+              menu_item('File -> Edit Scenario', message(@prolog, helpFileEditScenario)),
+              menu_item('File -> Load Scenario', message(@prolog, helpFileLoadScenario)),
+              menu_item('File -> Save', message(@prolog, helpFileSave)),
+              menu_item('File -> Save As', message(@prolog, helpFileSaveAs)),
+
+              menu_item('File -> Load RDF',message(@prolog, helpFileLoadRDF)),
+              menu_item('File -> Register Namespace',message(@prolog, helpFileREGNAMESPACE)),
+              menu_item('File -> Import Data',message(@prolog, helpFileIMPORT)),
+              menu_item('File -> Quit', message(@prolog, helpFileQuit),end_group := @on),
+
+              menu_item('Hypothesis -> New Hypothesis', message(@prolog, helpNewHypothesis),end_group := @on),
+
+              menu_item('Evidence -> Enter Basic Probability', message(@prolog, helpEnterBasicProbability),end_group := @on),
+
+              menu_item('Dempster-Shafer -> Combine Evidence', message(@prolog, helpCombineEvidence)),
+              menu_item('Dempster-Shafer -> Evidence Bar Chart', message(@prolog, helpEvidenceBarChart)),
+              menu_item('Dempster-Shafer -> Evidence Table', message(@prolog, helpEvidenceTable),end_group := @on)
+
+
+            ]),
+       forall(hyp(X, _), send(@hyp_view, append, X)),
+       send(@hyp_view, open_message,
+             message(@prolog, edit_hyp, @arg1?key)),
+       forall(evd_source(X,_),send(@data_view, append, X)),
+       send(@data_view, open_message,
+             message(@prolog, show2, @arg1?key)),
+
+       send(F, open).
+
+%                                                                              %
+%                                R D F - D A T A                               %
+%                                                                              %
+
+rdf_get_scenario(Scenario, Sce_Author, Sce_Desc, Sce_Name):-
+                call(rdf(Scenario, rdf:type, kb:scenario)),
+                call(rdf(Scenario, kb:author, literal(Sce_Author))),
+                call(rdf(Scenario, kb:description, literal(Sce_Desc))),
+                call(rdf(Scenario, kb:name, literal(Sce_Name))).
+
+rdf_get_data(Scenario,Data,Data_Name,Data_Desc):-
+                call(rdf(Scenario, rdf:type, kb:scenario)),
+                call(rdf(Scenario, kb:attached_sources, Data)),
+                call(rdf(Data, rdf:type, kb:data_source)),
+                call(rdf(Data, kb:description, literal(Data_Desc))),
+                call(rdf(Data, kb:name, literal(Data_Name))).
+
+rdf_get_hyp(Name, Descr):-
+                call(rdf(A, rdf:type, kb:hypothesis)),
+                call(rdf(A, kb:name, literal(Name))),
+                call(rdf(A, kb:description, literal(Descr))).
+
+rdf_get_evd(Hyp_List, Data_Name, Image_List, Name, Prob, Theta):-
+                 call(rdf(A, rdf:type, kb:evidence)),
+                 call(rdf(A, kb:name, literal(Name))),
+                 call(rdf(A, kb:probability, literal(Prob))),
+                 call(rdf(A, kb:theta_prob, literal(Theta))),
+                 call(rdf(A, kb:attached_source, Data)),
+                 call(rdf(Data, kb:name, literal(Data_Name))),
+                  findall(Hyp_Name,
+                              (call(rdf(A, kb:attached_hyp, Hyp)),
+                              call(rdf(Hyp, kb:name, literal(Hyp_Name)))),
+                  Hyp_List),
+                  findall(C,
+                              (call(rdf(A, kb:images, literal(C)))),
+                  Image_List).
+
+rdf_get_data2(Data_List):-
+                   findall(Data / Data_Name/ Data_Desc,
+                   (
+                   rdf_get_scenario(Scenario, _, _, _),
+                   rdf_get_data(Scenario,Data,Data_Name,Data_Desc)
+                   ),
+                   Data_List).
+
+rdf_get_evd2(Evd_List):-
+                   findall(Hyp_List/Data_Name/Image_List/Name/Prob/Theta,
+                   (
+                   rdf_get_data(_,_,Data_Name,_),
+                   rdf_get_evd(Hyp_List, Data_Name, Image_List, Name, Prob, Theta)
+                   ),
+                   Evd_List).
+
+rdf_get_hyp2(Hyp_List):-
+                   findall(Name/Descr,
+                   (
+                   rdf_get_hyp(Name, Descr)
+                   ),
+                   Hyp_List).
+
+rdf_get_hyp3([]).
+rdf_get_hyp3([Name/Descr|Rest]):-
+                               assert(hyp(Name, description(Descr))),
+                               rdf_get_hyp3(Rest).
+
+rdf_get_data3([]).
+rdf_get_data3([_Data/Data_Name/Data_Desc|Rest]):-
+                       assert(evd_source(Data_Name, description(Data_Desc))),
+                       rdf_get_data3(Rest).
+
+rdf_get_evd3([]).
+rdf_get_evd3([Hyp_List/Data_Name/_Image_List/Name/Prob/Theta|Rest]):-
+                       atom_to_term(Prob, P, _),
+                       atom_to_term(Theta, T, _),
+                       nextindex(N),
+                       assert(evd(Name, bpa0(N, Hyp_List, P), Data_Name)),
+                       assert(bpa0(N, Hyp_List, P)),
+                       states(STATES),
+                       assert(evd(non_belief, bpa0(N, STATES, T), Data_Name)),
+                       assert(bpa0(N, STATES, T)),
+                       rdf_get_evd3(Rest).
+
+nextindex(N):-
+              lastindex(I),
+              N is I + 1,
+              retractall(lastindex(_)),
+              assert(lastindex(N)).
+
+assert_rdf_scenario:-
+                     rdf_get_scenario(_, Sce_Author, Sce_Desc, Sce_Name),
+                     assert(scenario(title,Sce_Name)),
+                     assert(scenario(author, Sce_Author)),
+                     assert(scenario(description, Sce_Desc)),
+                     write('Hypotheses Asserted'),nl.
+
+assert_rdf_hypothesis:-
+                       rdf_get_hyp2(Hyp_List),
+                       rdf_get_hyp3(Hyp_List),
+                       findall(A, hyp(A,_), L),
+                       assert(states(L)),
+                       write('Hypotheses Asserted'),nl.
+
+assert_rdf_data:-
+                       rdf_get_data2(Hyp_List),
+                       rdf_get_data3(Hyp_List),
+                       write('Data Sources Asserted'),nl.
+
+assert_rdf_evd:-
+                       rdf_get_evd2(Evd_List),
+                       rdf_get_evd3(Evd_List),
+                       write('Evidences Asserted'),nl.
+                       
+import_data:-
+              write('\n%Processing Input Data...\n'),
+              assert_rdf_scenario,
+              assert_rdf_hypothesis,
+              assert_rdf_data,
+              assert_rdf_evd,
+              refresh_hyp,
+              refresh_data.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+%                          REFRESH FRAME                                       %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       
+refresh_hyp:-
+        get_hyp_view(View),
+        send(View, clear),
+        forall(hyp(X, _), send(View, append, X)),
+        send(View, open_message,
+         message(@prolog, edit_hyp, @arg1?key)).
+
+refresh_data:-
+        get_data_view(View),
+        send(View, clear),
+        forall(evd_source(X,_), send(View, append, X)),
+        evd(_, bpa0(Scenario, _, _), X),
+        send(View, open_message,
+        message(@prolog, show, Scenario)).
+        
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+%                          SCENARIO METHODS                                    %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+edit_scenario:-
+        new(D, dialog('Scenario')),
+        (scenario(title, T) ->
+        (
+            send(D, append, new(TS, tab_stack)),
+
+            %Scenario Information Tab
+            send(TS, append, new(G, tab('Scenario'))),
+            send(G, append, new(T1,text_item('Scenario Title:'))),
+            send(T1, length ,30),
+            send(T1, selection, T),
+            scenario(author, A),
+            send(G, append, new(T2,text_item('Author')),below),
+            send(T2, length ,30),
+            send(T2, selection, A),
+            send(G, append, new(L1,label(name, 'Description'))),
+            send(L1, font, @helvetica_bold_12),
+            send(G, append, new(E, editor(@default, 30, 4))),
+            send(T2,below, T1),
+            send(L1,below, T2),
+            send(E,below,L1),
+
+            % Data Source Information
+            send(TS, append, new(U, tab('Data Source'))),
+            send(U, append, new(T3,text_item('Source Name:'))),
+            send(T3, length ,30),
+            send(U, append, new(L2,label(name, 'Description'))),
+            send(L2, font, @helvetica_bold_12),
+            send(U, append, new(ED, editor(@default, 20, 4))),
+            send(U, append, new(L3,label(name, 'Current Sources'))),
+            send(L3, font, @helvetica_bold_12),
+            send(U, append, new(B, browser('Current Sources', size(30,4)))),
+            send(B, tab_stops, vector(100)),
+            send(B, multiple_selection, @on),
+            findall(S, evd_source(S, _), List),
+            show_states(B, List),
+            send(L2, below, T3),
+            send(ED, below, L2),
+            send(L3, below, ED),
+            send(B, below, L3),
+
+            send(U, append, button('Add', message(@prolog, add_data_source))),
+            send(U, append, button('Modify', message(@prolog, featureN))),
+            send(U, append, button('Delete',message(@prolog, featureN))),
+
+            send(D, append, button('Enter', message(@prolog, edit_scenario2,
+                                                              D,
+                                                              T1?selection,
+                                                              T2?selection,
+                                                              T3?selection))),
+            send(D, append, button('Quit', message(D, destroy))),
+            send(D, open)
+          );
+          (
+          send(D, append, new(L1,label(name, 'No Scenarios have been entered!'))),
+          send(D, open)
+          )).
+
+edit_scenario2(D, Sc_Title,Author, Data):-
+        write(Sc_Title), nl,
+        write(Author), nl,
+        retract(scenario(title,_)),
+        assert(scenario(title,Sc_Title)),
+        retract(scenario(author,_)),
+        assert(scenario(author, Author)),
+        assert(evd_source(Data,'Nothing')),
+        write(Data), nl,
+        send(D, destroy),
+        refresh_data.
+        
+load_scenario(Scenario):-
+               write(Scenario), write('Not Yet Developed'), nl.
+save_scenario:-
+               write('Not Yet Developed'), nl.
+saveAs_scenario:-
+                 write('Not Yet Developed'), nl.
+new_scenario:-
+        new(D, dialog('Scenario')),
+        send(D, append, new(TS, tab_stack)),
+        
+        %Scenario Information Tab
+        send(TS, append, new(G, tab('Scenario'))),
+        send(G, append, new(T1,text_item('Scenario Title:'))),
+        send(T1, length ,30),
+        send(G, append, new(T2,text_item('Author')),below),
+        send(T2, length ,30),
+        send(G, append, new(L1,label(name, 'Description'))),
+        send(L1, font, @helvetica_bold_12),
+        send(G, append, new(E, editor(@default, 30, 4))),
+        send(T2,below, T1),
+        send(L1,below, T2),
+        send(E,below,L1),
+        
+        % Data Source Information
+        send(TS, append, new(U, tab('Data Source'))),
+        send(U, append, new(T3,text_item('Source Name:'))),
+        send(T3, length ,30),
+        send(U, append, new(L2,label(name, 'Description'))),
+        send(L2, font, @helvetica_bold_12),
+        send(U, append, new(ED, editor(@default, 20, 4))),
+        send(U, append, new(L3,label(name, 'Current Sources'))),
+        send(L3, font, @helvetica_bold_12),
+        send(U, append, new(B, browser('Current Sources', size(30,4)))),
+        send(B, tab_stops, vector(100)),
+        send(B, multiple_selection, @on),
+        findall(S, evd_source(S, _), List),
+        show_states(B, List),
+        send(L2, below, T3),
+        send(ED, below, L2),
+        send(L3, below, ED),
+        send(B, below, L3),
+        
+        send(U, append, button('Add')),
+        send(U, append, button('Modify')),
+        send(U, append, button('Delete')),
+
+        send(D, append, button('Enter', message(@prolog, add_scenario,
+                                                                D,
+                                                                T1?selection,
+                                                                T2?selection,
+                                                                T3?selection))),
+        send(D, append, button('Quit', message(D, destroy))),
+        send(D, open).
+
+add_scenario(D, Sc_Title,Author,S_Name):-
+        write(Sc_Title), nl,
+        write(Author), nl,
+        write(S_Name), nl,
+        assert(scenario(title,Sc_Title)),
+        assert(scenario(author, Author)),
+        assert(evd_source(S_Name,_)),
+        send(D, destroy),
+        refresh_data.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+%                          DATA SOURCES METHODS                                %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+add_data_source:-
+        new(Dia,  dialog('Add Data Source')),
+        send(Dia, append, new(T1,text_item('Name:'))),
+        send(T1, length ,26),
+        send(Dia, append, new(T2,text_item('Description')),below),
+        send(T2, length ,50),
+        send(Dia, append, button('Enter', message(@prolog, add_data_source2,
+                                                                T1?selection,
+                                                                T2?selection,
+                                                                Dia)), below),
+        send(Dia, append, button('Quit', message(Dia, destroy))),
+        send(Dia, open).
+
+add_data_source2(T1, T2, Dia):-
+              write(T1),nl,
+              write(T2),nl,
+              assert(evd_source(T1, T2)),
+              send(Dia, destroy),
+              refresh_data.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+%                          HYPOTHESIS METHOD                                   %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+edit_hyp(H):-
+        hyp(H, description(De)),
+        new(D, dialog('Edit Hypothesis')),
+        send(D, append, new(T, text_item('Description:'))),
+        send(T, selection, H),
+        send(D, append, new(T2, text_item('Description:'))),
+        send(T2, selection, De),
+        send(D, append, button('Save', message(@prolog, edit_hyp2,
+                                                                  T?selection,
+                                                                  T2?selection,
+                                                                  D))),
+        send(D, append, button('Quit', message(D,destroy))),
+                           
+        send(D, open).
+        
+edit_hyp2(Name, De, D):-
+                write(Name),
+                write(De),
+                hyp(Name, description(_)),
+                retract(hyp(Name, description(_))),
+                assert(hyp(Name, description(De))),
+                send(D, destroy).
+
+enter_hyp:-
+        new(Dia,  dialog),
+        send(Dia, append, new(T1,text_item('Hypothesis:'))),
+        send(T1, length ,26),
+        send(Dia, append, new(T2,text_item('Description')),below),
+        send(T2, length ,50),
+        send(Dia, append, button('Enter', message(@prolog, enter_hyp2,
+                                                                T1?selection,
+                                                                T2?selection,
+                                                                Dia)), below),
+        send(Dia, append, button('Quit', message(Dia, destroy))),
+        send(Dia, open).
+
+enter_hyp2(T1, T2, Dia):-
+              write(T1),nl,
+              write(T2),nl,
+              add_states(T1),
+              assert(hyp(T1, description(T2))),
+              refresh_hyp,
+              send(Dia, destroy).
+              
+add_states(T1):-
+              states(A),
+              append(A, [T1], List),
+              retractall(states(_)),
+              assert(states(List)).
+              
+show_states(_, []).
+show_states(B, [Head|Rest]):-
+    send(B, append, new(_, text_item(Head))),
+    show_states(B, Rest).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+%                          EVIDENCE METHODS                                    %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+view_evidence:-
+               featureN.
+               
+edit_evidence(E):-
+        evd(E, bpa0(_, Hyp_list, Prob), Source),
+        evd_source(Source, description(Des)),
+        new(Dia,  dialog('Edit Evidence')),
+        send(Dia, width, 500),
+        send(Dia, height, 400),
+        send(Dia, append, new(T1,text_item('Evidence Name:'))),
+        send(T1, length ,20),
+        send(T1, selection, E),
+        send(Dia, append, new(L1,text_item('Description'))),
+        send(L1, length ,20),
+        send(L1, selection,Des),
+        send(Dia, append, new(L2,text_item('Data Source'))),
+        send(L2, length ,20),
+        send(L2, selection, Source),
+        send(Dia, append, new(S, slider(probability, 0.0, 1.0, 0.5)), below),
+        send(S,format,'%.2f'),
+        send(S, selection, Prob),
+        send(Dia, append, new(B, browser('Hypothesis List'))),
+        send(B, tab_stops, vector(200)),
+        send(B, multiple_selection, @on),
+        show_states(B, Hyp_list),
+        
+        send(Dia, append, button('Add Hypotheses', message(@prolog, add_hyp2, E))),
+        send(Dia, append, button('Delete Hypotheses')),
+
+
+        send(Dia, append, button('Save', message(@prolog, edit_evidence2,
+                                                                        T1?selection,
+                                                                        L1?selection,
+                                                                        L2?selection,
+                                                                        B?selection,
+                                                                        S?selection,
+                                                                        Dia)), below),
+        send(Dia, append, button('Quit', message(Dia, destroy))),
+        send(Dia, open).
+
+edit_evidence2(Name, Des, Source, _Hyp_List, Prob, Dia):-
+                     evd(Name, bpa0(B, _, _), Source),
+                     evd_source(Source, description(Des)),
+                     retract(evd(Name, bpa0(B, _, _), _)),
+                     retract(evd_source(Source, description(_))),
+                     assert(evd(Name, bpa0(B, [], Prob), Source)),
+                     assert(evd_source(Source, description(Des))),
+                     send(Dia, destroy),
+                     refresh_data.
+        
+enter_evidence:-
+         retractall(holder(_)),
+        new(Dia,  dialog('New Evidence')),
+        send(Dia, append, new(Evd_Name,text_item('Evidence Name:'))),
+        send(Evd_Name, length ,28),
+
+        send(Dia, append, new(L2,label(name, 'Data Sources'))),
+        send(L2, font, @helvetica_bold_12),
+        send(Dia, append, new(Data_Src, browser('Data Source',size(30,4)))),
+        send(Data_Src, tab_stops, vector(50)),
+        send(Data_Src, multiple_selection, @off),
+        findall(S, evd_source(S, _), List),
+        show_states(Data_Src, List),
+
+        send(Dia, append, new(L1,label(name, 'Description'))),
+        send(L1, font, @helvetica_bold_12),
+        send(Dia, append, new(_E, editor(@default, 26, 4))),
+
+        send(Dia, append, new(Hyp_List, browser('Hypothesis List'))),
+        send(Hyp_List, tab_stops, vector(200)),
+        send(Hyp_List, multiple_selection, @on),
+        states(L),
+        show_states(Hyp_List, L),
+        send(Dia, append, new(Prob, slider(probability, 0.0, 1.0, 0.5))),
+        send(Prob, format, '%.1f'),
+        send(Dia, append, button('Enter', message(@prolog, enter_evidence2,
+                                                            Evd_Name?selection,
+                                                            Data_Src,
+                                                            Hyp_List?selection,
+                                                            Prob?selection,
+                                                            Dia))),
+        send(Dia, append, button('Quit', message(Dia, destroy))),
+        send(Dia, open).
+
+enter_evidence2(E_NAME, Data, HYP, Prob, D):-
+              lastindex(N),
+              N1 is N + 1,
+              write(E_NAME),nl,
+              write(HYP), nl,
+              write(Prob), nl,
+              get(Data, selection, L), get(L, label, Data_Src),
+              write(Data_Src),
+              retractall(holder(_)),
+              send(HYP, for_all, message(@prolog, make_holder, @arg1?label)),
+              findall(H, holder(H), Hyp_List),
+              assert(evd(E_NAME, bpa0(N1, Hyp_List, Prob), Data_Src)),
+              assert(evd(non_belief, bpa0(N1, Hyp_List, Prob), Data_Src)),
+              Theta is 1 - Prob,
+              states(ST),
+              assert(bpa0(N1, Hyp_List, Prob)),
+              assert(bpa0(N1, ST, Theta)),
+              assert(lastindex(N1)),
+              send(D, destroy).
+              %write(E).
+
+make_holder(H):-
+                assert(holder(H)).
+                
+add_bpa1(List):-
+               assert(bpa1([List])).
+
+add_bpa(Scenario, T, Value):-
+         findall(F, bpa1(F), List),
+         flatten(List, NL),
+         assert(bpa0(Scenario, NL, Value)),
+         assert(evd(T, bpa0(Scenario, NL, Value),_)),
+         retractall(bpa1(_)).
+
+make_bpa_list(List, Scenario):-
+           findall(N-F, bpa0(Scenario, N, F), List).
+           
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+%                          BAR CHART METHODS                                    %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+barchart(Scenario):-
+        barchart(vertical, Scenario).
+barchart(HV, Scenario) :-
+        %send(Dia, append, new(W, picture)),
+        get_chart(Pic),
+        findall(F, bpa0(Scenario, _, F), List),
+        length(List, N),
+        send(Pic, display, new(BC, bar_chart(HV, 0, 1, 400, N))),
+        make_bpa_list(NewList, Scenario),
+        create_bar(Scenario, BC, NewList),
+        send(Pic, open).
+
+create_bar(_, _, []).
+create_bar(Scenario, BC, [Li-Val|Rest]):-
+               evd(T, bpa0(Scenario, Li, Val),_),
+               send(BC, append,bar(T, Val, green)),
+               create_bar(Scenario, BC, Rest).
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+%                          DEMPSTER-SHAFER COMBINATION                         %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+show(Scenario):-
+        get_table(View),
+        findall(E-M, (bpa0(Scenario,E,M)), List1),
+        com_belief(List1, List2, Scenario),
+        reverse(List2, List3),
+        evi_print(Scenario, List1, List3, View).
+        
+show2(Source):-
+        evd(_, bpa0(Scenario,_,_), Source),
+        get_table(View),
+        findall(E-M, (bpa0(Scenario,E,M)), List1),
+        com_belief(List1, List2, Scenario),
+        reverse(List2, List3),
+        evi_print(Scenario, List1, List3, View).
+
+combine_evidence:-
+                   get_table(View),
+                   % emptybin,
+                  assert(lastindex(0)),
+                  find_max_data_source(MAX),
+                  combine(MAX),
+                  findall(E-M, bpa0(result, E,M), List1),
+                  com_belief(List1, List2, result),
+                  reverse(List2, List3),
+                  combine_evi_print(View, result, List1, List3).
+
+
+com_belief([],_,_).
+com_belief([E-_|Rest],N, Scenario):-
+                 belief(Scenario, E, B),
+                 append([E-B], [], List2),
+                 com_belief(Rest, List, Scenario),
+                 append(List, List2, N).
+                 
+combine_evi_print(_, _,[]).
+combine_evi_print(Pic, Scenario, [Ev-Mass|Rest], [Ev-B|Rest2]):-
+        %send(Dia, append, new(P, picture('Combined Evidence'))),
+        send(Pic, clear),
+        send(Pic, layout_manager, new(T, table)),
+        send(T, border, 1),
+        send(T, cell_spacing, 2),
+        send(T, rules, rows),
+        send(T, frame, box),
+        send(T, append, text('Evidence')),
+        send(T, append, text('Updated Mass')),
+        send(T, append, text('Belief')),
+        send(T, next_row),
+        evd(A, bpa0(Scenario, Ev,_),_),
+        send(T, append, text(A)),
+        send(T, append, text(Mass)),
+        send(T, append, text(B)),
+        send(Pic, open),
+        send(T, next_row),
+        combine_evi_print(Pic, Scenario, Rest, Rest2, T).
+
+combine_evi_print(_, _,[],[], _T).
+combine_evi_print(Pic, _,[Ev-Mass|Rest], [Ev-B|Rest2], T):-
+        send(T, next_row),
+        evd(A, bpa0(Scenario, Ev,_),_),
+        send(T, append, text(A)),
+        send(T, append, text(Mass)),
+        send(T, append, text(B)),
+        combine_evi_print(Pic, Scenario, Rest, Rest2, T).
+        
+evi_print(_,[], [], _).
+evi_print(Scenario, [Ev-Mass|Rest], [Ev-B|Rest2], P):-
+        send(P, clear),
+        send(P, layout_manager, new(T, table)),
+        send(T, border, 1),
+        send(T, cell_padding, 2),
+        send(T, cell_spacing, 2),
+        send(T, rules, cols),
+        %send(T, frame, box),
+        send(T, append, text('Evidence')),
+        send(T, append, text('Mass')),
+        send(T, append, text('Belief')),
+        send(T, next_row),
+        evd(A, bpa0(Scenario, Ev,_),_),
+        send(T, append, text(A)),
+        send(T, append, text(Mass)),
+        send(T, append, text(B)),
+        send(P, open),
+        send(T, next_row),
+        evi_print(Scenario, Rest, Rest2, T, P).
+
+evi_print(_, [], [], _T, _).
+evi_print(Scenario, [Ev-Mass|Rest], [Ev-B|Rest2], T, P):-
+        send(T, next_row),
+        evd(A, bpa0(Scenario, Ev,_),_),
+        send(T, append, text(A)),
+        send(T, append, text(Mass)),
+        send(T, append, text(B)),
+        evi_print(Scenario, Rest, Rest2, T, P).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Help Menus actions
+
+helpFileNewScenario:- featureN.
+helpFileEditScenario:- featureN.
+helpFileLoadScenario:- featureN.
+helpFileLoadRDF:- featureN.
+helpFileREGNAMESPACE :- featureN.
+helpFileIMPORT:- featureN.
+helpFileSave:- featureN.
+helpFileSaveAs:- featureN.
+helpFileQuit:- featureN.
+helpNewHypothesis:- featureN.
+helpEditHypothesis:- featureN.
+helpEnterBasicProbability:- featureN.
+helpEditBasicProbability:- featureN.
+helpCombineEvidence:- featureN.
+helpEvidenceBarChart:- featureN.
+helpEvidenceTable:- featureN.
+
+/******************************************************************************/
+
+
+% START APPLICATION
+:- ds.

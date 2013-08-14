@@ -1,0 +1,23 @@
+/*  XPCE configuration file for "persistent_frame"
+    Saved Fri Jul 16 12:22:47 2004 by Omoju Miller
+*/
+
+configversion(1).
+[persistent_frame].
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Option lines starting with a `%' indicate      %
+% the value is equal to the application default. %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/* (X-)geometry for persistent frames */
+history/geometry/pui_manual =   '1024x712--4+-4'.
+history/geometry/man_manual =   '+227+155'.
+history/geometry/man_class_browser = '1152x804--4+-4'.
+history/geometry/man_card_editor = '668x294+86+85'.
+history/geometry/prolog_query_frame = '509x110+394+379'.
+history/geometry/prolog_debugger = '1140x798--3+0'.
+
+/* Sub-window layout for persistent frames */
+history/subwindow_layout/pui_manual = layout(*, [*, layout(*, [248, *]), *]).
+history/subwindow_layout/prolog_debugger = layout(*, [*, *, layout(176, [871, *]), *, *]).

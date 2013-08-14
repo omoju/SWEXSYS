@@ -1,0 +1,21 @@
+CERTAINTY INFERENCE QUESTIONS
+Is it true: 'http://protege.stanford.edu/kb#koko'size large
+Is it true: 'http://protege.stanford.edu/kb#koko'wings long_narrow
+Is it true: 'http://protege.stanford.edu/kb#koko'has feathers
+Is it true: 'http://protege.stanford.edu/kb#koko'flies
+Is it true: 'http://protege.stanford.edu/kb#koko'lays eggs
+Is it true: 'http://protege.stanford.edu/kb#koko'color white
+Is it true: 'http://protege.stanford.edu/kb#koko''does not'fly
+Is it true: 'http://protege.stanford.edu/kb#koko'swims
+Is it true: 
+'Object'has hair
+
+DERIVED FACTS
+'http://protege.stanford.edu/kb#koko'isa order_tubenose - 0.9
+'http://protege.stanford.edu/kb#koko'isa family_albatross - 0.81
+'http://protege.stanford.edu/kb#koko'isa bird with cf- 0.72
+'http://protege.stanford.edu/kb#koko'isa laysan_albatross - 0.63
+'http://protege.stanford.edu/kb#koko'isa penguin - 0.08
+
+SWEXSYS INFERENCE ENGINE
+Sun May 30 22:37:59 2004

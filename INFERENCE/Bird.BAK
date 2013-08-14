@@ -1,0 +1,174 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+	 <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+	 <!ENTITY a 'http://protege.stanford.edu/system#'>
+	 <!ENTITY Bird 'http://protege.stanford.edu/Bird#'>
+	 <!ENTITY rdfs 'http://www.w3.org/TR/1999/PR-rdf-schema-19990303#'>
+]>
+<rdf:RDF xmlns:rdf="&rdf;"
+	 xmlns:a="&a;"
+	 xmlns:Bird="&Bird;"
+	 xmlns:rdfs="&rdfs;">
+<rdfs:Class rdf:about="&Bird;albatross"
+	 rdfs:label="albatross">
+	<rdfs:subClassOf rdf:resource="&Bird;procellariidae"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&Bird;animalia"
+	 rdfs:label="animalia">
+	<rdfs:comment>All animals are members of the Kingdom Animalia, also called Metazoa. This Kingdom does not contain the prokaryotes (Kingdom Monera, includes bacteria, blue-green algae) or the protists (Kingdom Protista, includes unicellular eukaryotic organisms). All members of the Animalia are multicellular, and all are heterotrophs (that is, they rely directly or indirectly on other organisms for their nourishment). Most ingest food and digest it in an internal cavity.</rdfs:comment>
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&Bird;aves"
+	 rdfs:label="aves">
+	<rdfs:comment>Birds are vertebrates with feathers, modified for flight and for active metabolism. Birds are a monophyletic lineage, evolved once from a common ancestor, and all birds are related through that common origin. There are a few kinds of birds that don't fly, but their ancestors did, and these birds have secondarily lost the ability to fly. Modern birds have traits related to hot metabolism, and to flight:</rdfs:comment>
+	<rdfs:subClassOf rdf:resource="&Bird;chordata"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&Bird;bill"
+	 a:maxCardinality="1"
+	 rdfs:label="bill">
+	<rdfs:domain rdf:resource="&Bird;black_footed_albatross"/>
+	<rdfs:domain rdf:resource="&Bird;fulmar"/>
+	<rdfs:domain rdf:resource="&Bird;laysan_albatross"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdfs:Class rdf:about="&Bird;black_footed_albatross"
+	 rdfs:label="black_footed_albatross">
+	<rdfs:subClassOf rdf:resource="&Bird;albatross"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&Bird;cheek"
+	 a:maxCardinality="1"
+	 rdfs:label="cheek">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdfs:Class rdf:about="&Bird;chordata"
+	 rdfs:label="chordata">
+	<rdfs:comment>Chordates are defined as organisms that possess a structure called a notochord, at least during some part of their development. The notochord is a rod that extends most of the length of the body when it is fully developed. Lying dorsal to the gut but ventral to the central nervous system, it stiffens the body and acts as support during locomotion. Other characteristics shared by chordates include the following (from Hickman and Roberts, 1994):
+
+bilateral symmetry 
+segmented body, including segmented muscles 
+three germ layers and a well-developed coelom. 
+single, dorsal, hollow nerve cord, usually with an enlarged anterior end (brain) 
+tail projecting beyond (posterior to) the anus at some stage of development 
+pharyngeal pouches present at some stage of development 
+ventral heart, with dorsal and ventral blood vessels and a closed blood system 
+complete digestive system 
+bony or cartilaginous endoskeleton usually present.</rdfs:comment>
+	<rdfs:subClassOf rdf:resource="&Bird;animalia"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&Bird;color"
+	 a:maxCardinality="1"
+	 rdfs:label="color">
+	<rdfs:domain rdf:resource="&Bird;black_footed_albatross"/>
+	<rdfs:domain rdf:resource="&Bird;laysan_albatross"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;eats"
+	 a:maxCardinality="1"
+	 rdfs:label="eats">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;feed"
+	 a:maxCardinality="1"
+	 rdfs:label="feed">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;feet"
+	 a:maxCardinality="1"
+	 rdfs:label="feet">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;flight"
+	 a:maxCardinality="1"
+	 rdfs:label="flight">
+	<rdfs:domain rdf:resource="&Bird;fulmar"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;flight_profile"
+	 a:maxCardinality="1"
+	 rdfs:label="flight_profile">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdfs:Class rdf:about="&Bird;fulmar"
+	 rdfs:label="fulmar">
+	<rdfs:subClassOf rdf:resource="&Bird;procellariidae"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&Bird;head"
+	 a:maxCardinality="1"
+	 rdfs:label="head">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdfs:Class rdf:about="&Bird;laysan_albatross"
+	 rdfs:label="laysan_albatross">
+	<rdfs:subClassOf rdf:resource="&Bird;albatross"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&Bird;live"
+	 a:maxCardinality="1"
+	 rdfs:label="live">
+	<rdfs:domain rdf:resource="&Bird;black_footed_albatross"/>
+	<rdfs:domain rdf:resource="&Bird;fulmar"/>
+	<rdfs:domain rdf:resource="&Bird;laysan_albatross"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;neck"
+	 a:maxCardinality="1"
+	 rdfs:label="neck">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;nostrils"
+	 a:maxCardinality="1"
+	 rdfs:label="nostrils">
+	<rdfs:domain rdf:resource="&Bird;black_footed_albatross"/>
+	<rdfs:domain rdf:resource="&Bird;fulmar"/>
+	<rdfs:domain rdf:resource="&Bird;laysan_albatross"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdfs:Class rdf:about="&Bird;procellariidae"
+	 rdfs:label="procellariidae">
+	<rdfs:subClassOf rdf:resource="&Bird;aves"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&Bird;province"
+	 a:maxCardinality="1"
+	 rdfs:label="province">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;season"
+	 a:maxCardinality="1"
+	 rdfs:label="season">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;size"
+	 a:maxCardinality="1"
+	 rdfs:label="size">
+	<rdfs:domain rdf:resource="&Bird;black_footed_albatross"/>
+	<rdfs:domain rdf:resource="&Bird;fulmar"/>
+	<rdfs:domain rdf:resource="&Bird;laysan_albatross"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;state"
+	 a:maxCardinality="1"
+	 rdfs:label="state">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;tail"
+	 a:maxCardinality="1"
+	 rdfs:label="tail">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;throat"
+	 a:maxCardinality="1"
+	 rdfs:label="throat">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;voice"
+	 a:maxCardinality="1"
+	 rdfs:label="voice">
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&Bird;wings"
+	 a:maxCardinality="1"
+	 rdfs:label="wings">
+	<rdfs:domain rdf:resource="&Bird;black_footed_albatross"/>
+	<rdfs:domain rdf:resource="&Bird;laysan_albatross"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+</rdf:RDF>

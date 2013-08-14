@@ -1,0 +1,413 @@
+% Author: Omoju Thomas
+% Date: 2/23/2004
+% Common Modules
+
+
+
+:- dynamic known/1, used/2, used_rule/1, wastold/3, end_answers/1.
+:- dynamic reply/1, copy/1, lastindex/1, derived_fact/1.
+
+:- op(900, xfx, --).
+:- op(880, xfx, then).
+:- op(870, fx, if).
+:- op(800, xfx, was).
+:- op(600, xfx, from).
+:- op(600, xfx, by).
+:- op(550, xfy, or).
+:- op(540, xfy, and).
+:- op(300, fx, 'derived by').
+:- op(100, xfx, [has, gives, 'does not', eats, lays, isa, size, wings, color, flight]).
+:- op(100, xf, [swims, flies]).
+
+%:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::%
+getreply(Reply):-
+        make_dialog(D, getreply),
+        get(D, confirm_centered, Reply),
+        %write(Reply),
+        send(D, destroy).
+
+
+% useranswer() is an implementation of querying the user for information.
+% It queries the user when needed and also explains to the user why it is
+% needed.
+
+useranswer(Goal, Trace, Answer):-
+        askable(Goal, _),
+        % Variables in Goal renamed.
+        freshcopy(Goal, Copy),
+        useranswer(Goal, Copy, Trace, Answer, 1).
+
+% Do not ask the user about instantiated goals.
+
+useranswer(Goal,_,_,_,N):-
+        N > 1,
+         % No variables in Goal
+         instantiated(Goal), !,
+        fail.
+
+
+
+% Don't ask questions about attributes that are not multivariate.
+
+useranswer(Goal, _, _, _, _):-
+        wastold(Temp, _,_),
+        Temp=..[Verb|[Subject|[_]]],
+        Goal=..[Verb|[Subject|[_]]],
+        not( multivariate(Verb) ), !,
+        fail.
+
+% Is Goal implied true or false for all instatiations?
+
+useranswer(Goal, Copy, _, Answer, _):-
+        wastold(Copy, Answer,_),
+        instance_of(Copy,Goal), !.  % Answer to Goal implied
+
+% Retrieve known solutions, indexed from N on, for Goal
+
+useranswer(Goal,_,_,true,N):-
+        wastold(Goal, true, M),
+        M >= N.
+
+% Has everything already been said about Goal?
+
+useranswer(Goal, Copy, _, _, _):-
+        end_answers(Copy),
+        
+        % Everything was already said about Goal
+        instance_of(Copy, Goal),
+        fail.
+
+% Ask the user for more solutions
+
+useranswer(Goal, _, Trace, Answer, N):-
+       %testask(Goal, Trace, Answer, N).
+        askuser(Goal, Trace, Answer, N).
+
+askuser(Goal, Trace, Answer, N):-
+        askable(Goal, ExternalFormat),
+        % Get question format
+        format(Goal, ExternalFormat, Question, [], Variables),
+        ask(Goal, Question, Variables, Trace, Answer, N).
+
+ask(Goal, Question, Variables, Trace, Answer, N):-
+          get_left(View),
+        (
+                Variables = [], !,
+                send(View, format, '%s','Is it true: ')
+                ;
+                send(View, format, '%s\n','Is it true: ')
+        ),
+        term_to_atom(Question, Q),
+        send(View, format, '%s  ?', Q),
+        getreply(Reply), !,
+        send(View, format, ' %s\n', Reply),
+        process(Reply, Goal, Question, Variables, Trace, Answer, N).
+
+process(why, Goal, Question, Variables, Trace, Answer, N):-
+        showtrace(Trace),
+        ask(Goal, Question, Variables, Trace, Answer, N).
+
+process(yes, Goal, _, Variables, Trace, true, _):-
+        % Get new free index for was told
+        nextindex(Next),
+        Next1 is Next + 1,
+        (
+                askvars(Variables),
+                % Record solution
+                assertz(wastold(Goal, true, Next))
+
+                ;
+                 % Copy of Goal
+                 freshcopy(Goal, Copy),
+
+                useranswer(Goal, Copy, Trace, _, Next1) % More answers?
+        ).
+
+process(no, Goal, _, _, _, no,_):-
+        freshcopy(Goal, Copy),
+        % 'no' means: no more solutions
+        wastold(Copy, true, _), !,
+
+        % Mark end of all answers
+        assertz(end_answers(Goal)),
+
+        fail
+        ;
+        % Next free index for wastold
+        nextindex(Next),
+
+        assertz(wastold(Goal, no, Next)).
+        
+process(quit, _, _, _, _, quit, _):-
+              call(abort).
+
+process(q, _, _, _, _, quit, _):-
+              call(abort).
+              
+format(Var, Name, Name, Vars, [Var/Name | Vars]):-
+        var(Var), !.
+
+format(Atom, Name, Atom, Vars, Vars):-
+        atomic(Atom), !,
+        atomic(Name).
+
+format(Goal, Form, Question, Vars0, Vars):-
+        Goal=..[Functor | Args1],
+        Form=..[Functor | Forms],
+        formatall(Args1, Forms, Args2, Vars0, Vars),
+        Question=..[Functor | Args2].
+
+formatall([], [], [], Vars, Vars).
+
+formatall([X|XL], [F|FL], [Q|QL], Vars0, Vars):-
+        formatall(XL, FL, QL, Vars0, Vars1),
+        format(X, F, Q, Vars1, Vars).
+
+askvars([]).
+askvars([Variable/_Name | Variables]):-
+        make_dialog(D, get_vars),
+        get(D, confirm_centered, Variable),
+        write(Variable),
+        send(D, destroy),
+        askvars(Variables).
+
+
+showtrace([]):-
+        % get xpce view
+        get_left(View),
+        send(View, format, '%\ns\n', 'This was your question').
+
+showtrace([Goal by Rule| Trace]):-
+        % get xpce view
+        get_left(View),
+        send(View, format, '%\ns\n','To investigate, by'),
+        term_to_atom(Rule, R),
+        term_to_atom(Goal, G),
+        send(View, format, '%s , ',R),
+        send(View, format, '%s , ',G),
+        showtrace(Trace).
+
+instantiated(Term):-
+        % No variables in Term
+        numbervars(Term, 0, 0).
+
+
+% instance_of(T1, T2): instance of T1 is T2; that is,
+% term T1 is more general than T2 or equally general as T2
+
+instance_of(Term, Term1):-
+        freshcopy(Term1, Term2),
+        numbervars(Term2, 0, _), !,
+        Term = Term2.
+
+freshcopy(Term, FreshTerm):-
+        asserta(copy(Term)),
+        retract(copy(FreshTerm)), !.
+
+nextindex(Next):-
+        retract(lastindex(Last)), !,
+        Next is Last + 1,
+        assert(lastindex(Next)).
+
+%::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::%
+
+
+truth(_ is TruthValue was _, TruthValue):- !.
+
+% To compensate for joint positive answers with and as the conjuction.
+
+truth(Answer1 and Answer2, TruthValue):-
+        truth(Answer1, true),
+        truth(Answer2, true), !,
+        TruthValue = true
+        ;
+        TruthValue = false.
+
+positive(Answer):-
+        truth(Answer, true).
+
+negative(Answer):-
+        truth(Answer, false).
+
+markstatus(positive):-
+        retract(no_positive_answer_yet), !
+        ;
+        true.
+
+markstatus(negative):-
+        assert(no_positive_answer_yet).
+
+getquestion(Question):-
+        nl, write('Question, please: '), nl,
+        read(Question).
+%:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::%
+%                                                                             %
+% The procedure present(Answer) displays the final result of a                %
+% consultation session and generates the 'how' explanation.                   %
+%                                                                             %
+% Answer includes both an answer to the user's question, and a                %
+% proof tree showing how this conclusion was reached.                         %
+%                                                                             %
+%:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::%
+present_fact(Ans):-
+      get_left(View),
+      showconclusion(Ans, View).
+      
+present(Ans, V):-
+      showconclusion(Ans, V),
+      send(V, format, '%s', 'Would you like to see how?'),
+      getreply(Reply),
+      term_to_atom(Reply, R),
+      send(V, format,' %s\n', R),
+      (Reply = quit ->
+          (call(abort))
+          ;
+          Reply = no ->
+          (!)
+          ;
+          (myshow(Ans, V))
+        ).
+  
+showconclusion(Answer1 and Answer2, V) :- !,
+        showconclusion(Answer1, V),
+        send(V, format, '%s', ' and '),
+        showconclusion(Answer2, V).
+
+showconclusion(Conclusion was _, V):-
+        term_to_atom(Conclusion, Con),
+        send(V, format, '%s\n',Con).
+
+% 'myshow' displays a complete solution tree
+
+myshow(Solution, V):-
+        send(V, format, '\n'),
+        myshow(Solution,V,0), !.
+
+myshow(Answer1 and Answer2, V, H):-
+       % Indent by H
+        myshow(Answer1, V, H),
+        send(V, format, '%s', ' '),
+        send(V, format, '%s\n', '  and'),
+        myshow(Answer2, V, H).
+
+myshow(Answer was Found, V, H):-
+        send(V, format, '%s', ' '), writeans(Answer, V),
+        nl, send(V, format, '%s', ' '),
+        send(V, format, '%s',' was '),
+        show1(Found, V, H).
+
+show1(Derived from Answer, V, H):- !,
+        term_to_atom(Derived, D),
+        send(V, format, '%s',D),
+        send(V, format, '%s',' from '),
+        nl, H1 is H + 4,
+        myshow(Answer, V, H1).
+
+show1(Found, V, _):-
+        term_to_atom(Found, F),
+        send(V, format, '%s\n', F).
+
+writeans(Goal is true, V):-
+        term_to_atom(Goal, G),
+        send(V, format, '%s',G).
+
+writeans(Answer, V):-
+        term_to_atom(Answer, A),
+        send(V, format, '%s',A).
+
+        
+dialog(getreply,
+       [ object        :=
+           Getreply,
+         parts         :=
+           [ Getreply := dialog('Get Reply'),
+             Reply     := text_item('Reply'),
+             Enter    := button('Enter'),
+             Cancel   := button('Cancel')
+           ],
+         modifications :=
+           [ Reply   := [ length    := 26,
+                         alignment := left
+                       ],
+             Enter  := [ alignment := right
+                       ],
+             Cancel := [ alignment := right
+                       ]
+           ],
+         layout        :=
+           [ below(Enter, Reply),
+             right(Cancel, Enter)
+           ],
+         behaviour     :=
+           [ Enter  := [ message := message(Getreply,
+                                            return,
+                                            Reply?selection)
+                       ],
+             Cancel := [ message := message(Getreply, return, no)
+                       ]
+           ]
+       ]).
+dialog(get_vars,
+       [ object        :=
+           Get_vars,
+         parts         :=
+           [ Get_vars := dialog('Ask Variable'),
+             Variable     := text_item('Variable Name'),
+             Enter    := button('Enter'),
+             Cancel   := button('Cancel')
+           ],
+         modifications :=
+           [ Variable   := [ length    := 26,
+                         alignment := left
+                       ],
+             Enter  := [ alignment := right
+                       ],
+             Cancel := [ alignment := right
+                       ]
+           ],
+         layout        :=
+           [ below(Enter, Variable),
+             right(Cancel, Enter)
+           ],
+         behaviour     :=
+           [ Enter  := [ message := message(Get_vars,
+                                            return,
+                                            Variable?selection)
+                       ],
+             Cancel := [ message := message(Get_vars, destroy)
+                       ]
+           ]
+       ]).
+dialog(get_goal_backward,
+       [ object        :=
+           Get_goal_backward,
+         parts         :=
+           [ Get_goal_backward := dialog('Get Goal'),
+             Name     := text_item('Goal'),
+             Enter    := button('Enter'),
+             Cancel   := button('Cancel')
+           ],
+         modifications :=
+           [ Name   := [ length    := 26,
+                         alignment := left
+                       ],
+             Enter  := [ alignment := right
+                       ],
+             Cancel := [ alignment := right
+                       ]
+           ],
+         layout        :=
+           [ below(Enter, Name),
+             right(Cancel, Enter)
+           ],
+         behaviour     :=
+           [ Enter  := [ message := message(Get_goal_backward,
+                                            return,
+                                            Name?selection)
+                       ],
+             Cancel := [ message := message(Get_goal_backward, return, no)
+                       ]
+           ]
+       ]).
+
+

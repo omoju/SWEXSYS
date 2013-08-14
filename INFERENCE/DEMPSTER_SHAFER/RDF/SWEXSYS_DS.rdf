@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+	 <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+	 <!ENTITY kb 'http://protege.stanford.edu/kb#'>
+	 <!ENTITY rdfs 'http://www.w3.org/TR/1999/PR-rdf-schema-19990303#'>
+]>
+<rdf:RDF xmlns:rdf="&rdf;"
+	 xmlns:kb="&kb;"
+	 xmlns:rdfs="&rdfs;">
+<kb:data_source rdf:about="&kb;SWEXSYS_Instance_1"
+	 kb:description="senosr1"
+	 kb:name="sensor1"
+	 rdfs:label="sensor1"/>
+<kb:evidence rdf:about="&kb;SWEXSYS_Instance_11"
+	 kb:name="e2"
+	 kb:probability="0.8"
+	 kb:theta_prob="0.2"
+	 rdfs:label="e2">
+	<kb:attached_source rdf:resource="&kb;SWEXSYS_Instance_2"/>
+	<kb:attached_hyp rdf:resource="&kb;SWEXSYS_Instance_4"/>
+	<kb:images>SWEXSYS\Inference\DEMPSTER_SHAFER\RDF\E2_1.html</kb:images>
+	<kb:images>SWEXSYS\Inference\DEMPSTER_SHAFER\RDF\E2_4.html</kb:images>
+</kb:evidence>
+<kb:evidence rdf:about="&kb;SWEXSYS_Instance_18"
+	 kb:name="e3"
+	 kb:probability="0.4"
+	 kb:theta_prob="0.6"
+	 rdfs:label="e3">
+	<kb:attached_hyp rdf:resource="&kb;SWEXSYS_Instance_3"/>
+	<kb:attached_hyp rdf:resource="&kb;SWEXSYS_Instance_4"/>
+	<kb:attached_hyp rdf:resource="&kb;SWEXSYS_Instance_5"/>
+	<kb:attached_source rdf:resource="&kb;SWEXSYS_Instance_7"/>
+</kb:evidence>
+<kb:data_source rdf:about="&kb;SWEXSYS_Instance_2"
+	 kb:description="sensor2"
+	 kb:name="sensor2"
+	 rdfs:label="sensor2"/>
+<kb:hypothesis rdf:about="&kb;SWEXSYS_Instance_3"
+	 kb:description="a military tank"
+	 kb:name="tank"
+	 rdfs:label="tank"/>
+<kb:hypothesis rdf:about="&kb;SWEXSYS_Instance_4"
+	 kb:description="a military supply truck"
+	 kb:name="truck"
+	 rdfs:label="truck"/>
+<kb:hypothesis rdf:about="&kb;SWEXSYS_Instance_5"
+	 kb:description='""'
+	 kb:name="patrol"
+	 rdfs:label="patrol"/>
+<kb:scenario rdf:about="&kb;SWEXSYS_Instance_6"
+	 kb:author="Omoju Thomas"
+	 kb:description="This situation deals with identifying military crafts"
+	 kb:name="Milittary craft scenario"
+	 rdfs:label="Milittary craft scenario">
+	<kb:attached_sources rdf:resource="&kb;SWEXSYS_Instance_1"/>
+	<kb:attached_sources rdf:resource="&kb;SWEXSYS_Instance_2"/>
+	<kb:attached_sources rdf:resource="&kb;SWEXSYS_Instance_7"/>
+</kb:scenario>
+<kb:data_source rdf:about="&kb;SWEXSYS_Instance_7"
+	 kb:name="sensor3"
+	 rdfs:label="sensor3">
+	<kb:description xml:space='preserve'><![CDATA[''"]]></kb:description>
+</kb:data_source>
+<kb:evidence rdf:about="&kb;SWEXSYS_Instance_9"
+	 kb:images="SWEXSYS\Inference\DEMPSTER_SHAFER\RDF\E1_5.html"
+	 kb:name="e1"
+	 kb:probability="0.5"
+	 kb:theta_prob="0.5"
+	 rdfs:label="e1">
+	<kb:attached_source rdf:resource="&kb;SWEXSYS_Instance_1"/>
+	<kb:attached_hyp rdf:resource="&kb;SWEXSYS_Instance_3"/>
+	<kb:attached_hyp rdf:resource="&kb;SWEXSYS_Instance_4"/>
+	<kb:images>SWEXSYS\Inference\DEMPSTER_SHAFER\RDF\E1_1.html</kb:images>
+	<kb:images>SWEXSYS\Inference\DEMPSTER_SHAFER\RDF\E1_2.html</kb:images>
+	<kb:images>SWEXSYS\Inference\DEMPSTER_SHAFER\RDF\E1_3.html</kb:images>
+	<kb:images>SWEXSYS\Inference\DEMPSTER_SHAFER\RDF\E1_4.html</kb:images>
+</kb:evidence>
+</rdf:RDF>

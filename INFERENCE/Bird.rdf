@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+         <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+         <!ENTITY bird 'http://protege.stanford.edu/bird#'>
+         <!ENTITY rdfs 'http://www.w3.org/TR/1999/PR-rdf-schema-19990303#'>
+]>
+<rdf:RDF xmlns:rdf="&rdf;"
+         xmlns:bird="&bird;"
+         xmlns:rdfs="&rdfs;">
+<bird:black_footed_albatross rdf:about="&bird;bird_Instance_4"
+         bird:bill="hooked"
+         bird:color="dark"
+         bird:live="at_sea"
+         bird:nostrils="external_tubular"
+         bird:size="large"
+         bird:wings="long_narrow">
+        <rdfs:label xml:space='preserve'><![CDATA[<bird_Instance_4 display slot not set>]]></rdfs:label>
+</bird:black_footed_albatross>
+<bird:laysan_albatross rdf:about="&bird;bird_Instance_6"
+         bird:bill="hooked"
+         bird:color="white"
+         bird:live="at_sea"
+         bird:nostrils="external_tubular"
+         bird:size="large"
+         bird:wings="long_narrow">
+        <rdfs:label xml:space='preserve'><![CDATA[<bird_Instance_6 display slot not set>]]></rdfs:label>
+</bird:laysan_albatross>
+<bird:fulmar rdf:about="&bird;bird_Instance_7"
+         bird:bill="hooked"
+         bird:flight="flap_glide"
+         bird:live="at_sea"
+         bird:nostrils="external_tubular"
+         bird:size="medium">
+        <rdfs:label xml:space='preserve'><![CDATA[<bird_Instance_7 display slot not set>]]></rdfs:label>
+</bird:fulmar>
+</rdf:RDF>

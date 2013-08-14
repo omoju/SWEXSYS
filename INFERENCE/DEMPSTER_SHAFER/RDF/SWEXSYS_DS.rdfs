@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+	 <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+	 <!ENTITY a 'http://protege.stanford.edu/system#'>
+	 <!ENTITY kb 'http://protege.stanford.edu/kb#'>
+	 <!ENTITY rdfs 'http://www.w3.org/TR/1999/PR-rdf-schema-19990303#'>
+]>
+<rdf:RDF xmlns:rdf="&rdf;"
+	 xmlns:a="&a;"
+	 xmlns:kb="&kb;"
+	 xmlns:rdfs="&rdfs;">
+<rdf:Property rdf:about="&kb;attached_hyp"
+	 rdfs:label="attached_hyp">
+	<rdfs:domain rdf:resource="&kb;evidence"/>
+	<rdfs:range rdf:resource="&kb;hypothesis"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;attached_source"
+	 a:maxCardinality="1"
+	 a:minCardinality="1"
+	 rdfs:label="attached_source">
+	<rdfs:range rdf:resource="&kb;data_source"/>
+	<rdfs:domain rdf:resource="&kb;evidence"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;attached_sources"
+	 rdfs:label="attached_sources">
+	<rdfs:range rdf:resource="&kb;data_source"/>
+	<rdfs:domain rdf:resource="&kb;scenario"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;author"
+	 rdfs:label="author">
+	<rdfs:domain rdf:resource="&kb;scenario"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdfs:Class rdf:about="&kb;data_source"
+	 rdfs:label="data_source">
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&kb;description"
+	 a:maxCardinality="1"
+	 a:minCardinality="1"
+	 rdfs:label="description">
+	<rdfs:domain rdf:resource="&kb;data_source"/>
+	<rdfs:domain rdf:resource="&kb;hypothesis"/>
+	<rdfs:domain rdf:resource="&kb;scenario"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdfs:Class rdf:about="&kb;evidence"
+	 rdfs:label="evidence">
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;hypothesis"
+	 rdfs:label="hypothesis">
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&kb;images"
+	 rdfs:label="images">
+	<rdfs:domain rdf:resource="&kb;evidence"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;name"
+	 a:maxCardinality="1"
+	 a:minCardinality="1"
+	 rdfs:label="name">
+	<rdfs:domain rdf:resource="&kb;data_source"/>
+	<rdfs:domain rdf:resource="&kb;evidence"/>
+	<rdfs:domain rdf:resource="&kb;hypothesis"/>
+	<rdfs:domain rdf:resource="&kb;scenario"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;probability"
+	 a:maxCardinality="1"
+	 a:minCardinality="1"
+	 a:range="float"
+	 rdfs:label="probability">
+	<rdfs:domain rdf:resource="&kb;evidence"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdfs:Class rdf:about="&kb;scenario"
+	 rdfs:label="scenario">
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&kb;theta_prob"
+	 a:maxCardinality="1"
+	 a:minCardinality="1"
+	 a:range="float"
+	 rdfs:label="theta_prob">
+	<rdfs:domain rdf:resource="&kb;evidence"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+</rdf:RDF>
