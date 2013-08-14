@@ -1,7 +1,7 @@
 /***********************************************************************                                                                             *
 *                BACKWARD.PL
 *
-* Author: OMOJU THOMAS
+* Author: OMOJU Miller
 * Date: 3/29/2004
 *
 * Simple RDF enabled backward chaining in prolog
