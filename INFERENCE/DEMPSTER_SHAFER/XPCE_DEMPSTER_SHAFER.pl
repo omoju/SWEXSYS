@@ -1,4 +1,4 @@
-% Author: Omoju Thomas
+% Author: Omoju Miller
 % Date: 5/10/2004
 
 :- use_module(library('plot/plotter')).

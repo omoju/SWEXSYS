@@ -1,3 +1,6 @@
+% Author: Omoju Miller
+
+
 :- dynamic bpa0 /3.
 :- dynamic bel0 /3.
 :- dynamic pos0 /3.
