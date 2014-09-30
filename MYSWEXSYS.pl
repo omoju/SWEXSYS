@@ -11,7 +11,7 @@
 % Extending the application to perform several inference strategies.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%
 
 :- require([ send_list/3]).
 
