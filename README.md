@@ -13,7 +13,7 @@ The Semantic Web Expert System Shell has been developed in XPCE which is an obje
 
 ## Papers
 - [SWEXSYS: A Semantic Web Expert System Shell](http://www.actapress.com/Abstract.aspx?paperId=15878)
-- [Applying the semantic web expert system shell to sensor fusion using dempster-shafer theory](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwj_5d2I35vMAhUB1WMKHW4xDvsQFggdMAA&url=http%3A%2F%2Fieeexplore.ieee.org%2Fxpls%2Fabs_all.jsp%3Farnumber%3D1460868&usg=AFQjCNEm9iTOIibZauLpwV3SyxEpb1v8dw&sig2=tLKN9C-M_fLZHx0Xeht_Jw&cad=rja)
+- [Applying the Semantic Web Expert System Shell to Sensor Fusion using Dempster-Shafer Theory](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwj_5d2I35vMAhUB1WMKHW4xDvsQFggdMAA&url=http%3A%2F%2Fieeexplore.ieee.org%2Fxpls%2Fabs_all.jsp%3Farnumber%3D1460868&usg=AFQjCNEm9iTOIibZauLpwV3SyxEpb1v8dw&sig2=tLKN9C-M_fLZHx0Xeht_Jw&cad=rja)
 
 
 ## How to Contribute
