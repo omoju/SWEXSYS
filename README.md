@@ -5,6 +5,17 @@ The Semantic Web Expert System (SWEXSYS) shell is a framework capable of buildin
 
 The Semantic Web Expert System Shell has been developed in XPCE which is an object-oriented library for building Graphical User Interfaces (GUI's) for symbolic or strongly typed languages and is distributed as a library on top of the hosting Prolog system.
 
+- The work was done as part of a doctoral study in Computer Science education. 
+-----------------------------------------------------------------------------------
+| Title    | Semantic Web Expert System (SWEXSYS) Shell |
+| -------- | --------------------------------------------------------------------- |
+| Author   | Omoju Thomas 							                               |
+| Advisor  | [Dr. David J. Russomanno ][David] 					                       |
+| Degree   | Masters of Science, Electrical and Computer Engineering 	                   |
+| Emphasis | Intelligent Systems				|
+| Date     | Dec 2004								                               |
+------------------------------------------------------------------------------------
+[David]: http://engr.iupui.edu/main/people/detail.php?id=drussoma
 
 ## System Requirements
 
